@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block title %}Login - Naukari{% endblock %}
+
+{% block content %}
+<div class="glass-panel" style="max-width: 400px; margin: 60px auto;">
+    <h2 style="margin-top:0;">Login</h2>
+    
+    {% if messages %}
+        {% for message in messages %}
+            <div style="padding:10px; margin-bottom:15px; border-radius:5px; background: {% if message.tags == 'error' %}var(--danger){% else %}var(--success){% endif %};">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <form method="post" action="{% url 'login' %}">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px;">Login</button>
+    </form>
+    
+    <p style="text-align:center; margin-top:15px;">
+        Don't have an account? <a href="{% url 'register' %}" style="color:var(--primary);">Register here</a>
+    </p>
+</div>
+{% endblock %}

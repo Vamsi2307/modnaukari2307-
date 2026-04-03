@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Naukari - Job Portal{% endblock %}</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/" class="brand">🚀 Naukari<span>Portal</span></a>
+        <div class="nav-links">
+            {% if user.is_authenticated %}
+                {% if user.role == 'RECRUITER' %}
+                    <a href="{% url 'recruiter_dashboard' %}">Dashboard</a>
+                {% else %}
+                    <a href="{% url 'candidate_dashboard' %}">Dashboard</a>
+                {% endif %}
+                <span style="color: var(--text-secondary); margin: 0 10px;">|</span>
+                <span style="font-weight: 600;">{{ user.username }}</span>
+                <form action="{% url 'logout' %}" method="post" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" style="background:none; border:none; color:var(--text-secondary); font-weight:600; cursor:pointer;" onmouseover="this.style.color='white'" onmouseout="this.style.color='var(--text-secondary)'">Logout</button>
+                </form>
+            {% else %}
+                <a href="{% url 'login' %}">Login</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <div class="container animated">
+        {% block content %}
+        {% endblock %}
+    </div>
+
+    <footer>
+        <p>&copy; 2026 Naukari Job Portal System. Designed with Django.</p>
+    </footer>
+
+    <script>
+        // Utility functions for API requests with CSRF
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

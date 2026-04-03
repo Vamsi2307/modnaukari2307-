@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="glass-panel" style="text-align: center; max-width: 800px; margin: 40px auto; padding: 60px 20px;">
+    <h1 style="font-size: 3rem; margin-bottom: 20px;">Find Your <span style="color: var(--accent);">Dream Job</span> Today</h1>
+    <p style="font-size: 1.2rem; color: var(--text-secondary); margin-bottom: 40px;">Connect with top tier companies and streamline your recruitment process.</p>
+    
+    <div style="display: flex; gap: 20px; justify-content: center;">
+        <a href="{% url 'login' %}" class="btn btn-primary" style="font-size: 1.1rem; padding: 12px 30px;">Login Here</a>
+        <a href="/login/?register=1" class="btn" style="font-size: 1.1rem; padding: 12px 30px; background: rgba(255,255,255,0.1); color: white;">Create Account</a>
+    </div>
+</div>
+
+<div style="margin-top: 60px;">
+    <h2 style="text-align: center; margin-bottom: 30px;">Latest Opportunities</h2>
+    <div class="job-grid" id="public-jobs-grid">
+        <!-- populated via JS -->
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        fetch('/api/jobs/')
+            .then(res => res.json())
+            .then(data => {
+                const grid = document.getElementById('public-jobs-grid');
+                if(data.length === 0){
+                    grid.innerHTML = '<p>No jobs posted yet. Check back later!</p>';
+                    return;
+                }
+                data.slice(0, 6).forEach(job => {
+                    grid.innerHTML += `
+                        <div class="glass-panel">
+                            <div class="badge" style="display:inline-block; margin-bottom:10px;">New</div>
+                            <h3 style="margin-top:0;">${job.title}</h3>
+                            <p style="color: var(--text-secondary);">${job.company} &bull; ${job.location}</p>
+                            <p style="font-size: 0.9rem;">${job.description.substring(0, 100)}...</p>
+                            <a href="{% url 'login' %}" class="btn btn-primary" style="margin-top:10px;">Login to Apply</a>
+                        </div>
+                    `;
+                });
+            });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+{% block title %}Recruiter Dashboard - Naukari{% endblock %}
+
+{% block content %}
+<div style="display: flex; gap: 20px; align-items: flex-start; margin-top: 40px;">
+    <!-- Sidebar -->
+    <div class="glass-panel" style="width: 250px; min-height: 400px;">
+        <h3 style="margin-top:0;">Menu</h3>
+        <ul style="list-style:none; padding:0;">
+            <li style="margin-bottom: 10px;"><a href="#" id="view-my-jobs-btn" style="color:var(--text-primary); text-decoration:none; font-weight:600;">My Jobs</a></li>
+            <li style="margin-bottom: 10px;"><a href="#" id="view-applicants-btn" style="color:var(--text-secondary); text-decoration:none;">Applicants</a></li>
+            <li><a href="#" id="post-job-btn" style="color:var(--text-secondary); text-decoration:none;">Post New Job</a></li>
+        </ul>
+    </div>
+
+    <!-- Main Section -->
+    <div style="flex:1;">
+        
+        <!-- My Jobs Section -->
+        <div id="section-my-jobs">
+            <h2 style="margin-top:0;">Jobs I've Posted</h2>
+            <div class="job-grid">
+                {% if not jobs %}
+                    <p>You have not posted any jobs yet.</p>
+                {% else %}
+                    {% for job in jobs %}
+                    <div class="glass-panel">
+                        <h3 style="margin-top:0;">{{ job.title }}</h3>
+                        <p style="color: var(--text-secondary); font-size: 0.9rem;">📍 {{ job.location }} | Posted: {{ job.posted_at|date:"M d, Y" }}</p>
+                        <form method="POST" action="{% url 'api-job-detail' job.id %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="_method" value="DELETE">
+                            <button type="submit" class="btn btn-primary" style="background:var(--danger); margin-top:10px;">Delete Job</button>
+                        </form>
+                    </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Applicants Section -->
+        <div id="section-applicants" style="display: none;">
+            <h2 style="margin-top:0;">Job Applications</h2>
+            <div style="display: flex; flex-direction: column; gap:15px;">
+                {% if not applications %}
+                    <p>No applications received yet.</p>
+                {% else %}
+                    {% for app in applications %}
+                    <div class="glass-panel" style="display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <h3 style="margin:0 0 5px 0;">{{ app.candidate.username }}</h3>
+                            <p style="margin:0; color:var(--text-secondary); font-size:0.9rem;">Applied for: <strong>{{ app.job.title }}</strong></p>
+                            <p style="margin:10px 0 0 0; font-size:0.9rem; background:rgba(0,0,0,0.2); padding:10px; border-radius:5px;">{{ app.resume_summary }}</p>
+                        </div>
+                        <div style="display:flex; gap:10px;">
+                            {% if app.status == 'PENDING' %}
+                                <form method="POST" action="{% url 'api-update-application-status' app.id %}" style="display:inline;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="status" value="ACCEPTED">
+                                    <button type="submit" class="btn btn-success">Accept</button>
+                                </form>
+                                <form method="POST" action="{% url 'api-update-application-status' app.id %}" style="display:inline;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="status" value="REJECTED">
+                                    <button type="submit" class="btn btn-danger">Reject</button>
+                                </form>
+                            {% else %}
+                                <span class="badge badge-{{ app.status|lower }}">{{ app.status }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Post Job Section -->
+        <div id="section-post-job" style="display: none;">
+            <div class="glass-panel" style="max-width: 600px;">
+                <h2 style="margin-top:0;">Post a New Job</h2>
+                <form method="POST" action="{% url 'api-jobs' %}">
+                    {% csrf_token %}
+                    <label>Job Title</label>
+                    <input type="text" name="title" required placeholder="e.g. Senior Software Engineer">
+                    
+                    <label>Company Name</label>
+                    <input type="text" name="company" required placeholder="e.g. Google">
+                    
+                    <label>Location</label>
+                    <input type="text" name="location" required placeholder="e.g. Remote, or New York, NY">
+                    
+                    <label>Salary (Optional)</label>
+                    <input type="text" name="salary" placeholder="e.g. $120k - $150k">
+                    
+                    <label>Job Description</label>
+                    <textarea name="description" rows="6" required placeholder="Describe the role and requirements..."></textarea>
+                    
+                    <button type="submit" class="btn btn-primary" style="width:100%; margin-top:10px;">Create Job</button>
+                </form>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Tab switching logic only, NO API FETCHES!
+    const secMyJobs = document.getElementById('section-my-jobs');
+    const secApplicants = document.getElementById('section-applicants');
+    const secPostJob = document.getElementById('section-post-job');
+    
+    const btnMyJobs = document.getElementById('view-my-jobs-btn');
+    const btnApplicants = document.getElementById('view-applicants-btn');
+    const btnPostJob = document.getElementById('post-job-btn');
+
+    function resetTabs() {
+        secMyJobs.style.display = 'none';
+        secApplicants.style.display = 'none';
+        secPostJob.style.display = 'none';
+        btnMyJobs.style.color = 'var(--text-secondary)';
+        btnMyJobs.style.fontWeight = 'normal';
+        btnApplicants.style.color = 'var(--text-secondary)';
+        btnApplicants.style.fontWeight = 'normal';
+        btnPostJob.style.color = 'var(--text-secondary)';
+        btnPostJob.style.fontWeight = 'normal';
+    }
+
+    btnMyJobs.addEventListener('click', (e) => {
+        e.preventDefault();
+        resetTabs();
+        secMyJobs.style.display = 'block';
+        btnMyJobs.style.color = 'var(--text-primary)';
+        btnMyJobs.style.fontWeight = '600';
+    });
+
+    btnApplicants.addEventListener('click', (e) => {
+        e.preventDefault();
+        resetTabs();
+        secApplicants.style.display = 'block';
+        btnApplicants.style.color = 'var(--text-primary)';
+        btnApplicants.style.fontWeight = '600';
+    });
+
+    btnPostJob.addEventListener('click', (e) => {
+        e.preventDefault();
+        resetTabs();
+        secPostJob.style.display = 'block';
+        btnPostJob.style.color = 'var(--text-primary)';
+        btnPostJob.style.fontWeight = '600';
+    });
+</script>
+{% endblock %}

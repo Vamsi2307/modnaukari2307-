@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+{% block title %}Candidate Dashboard - Naukari{% endblock %}
+
+{% block content %}
+<div style="display: flex; gap: 20px; align-items: flex-start; margin-top: 40px;">
+    <!-- Sidebar -->
+    <div class="glass-panel" style="width: 250px; min-height: 400px;">
+        <h3 style="margin-top:0;">Menu</h3>
+        <ul style="list-style:none; padding:0;">
+            <li style="margin-bottom: 10px;"><a href="#" id="explore-jobs-btn" style="color:var(--text-primary); text-decoration:none; font-weight:600;">Explore Jobs</a></li>
+            <li><a href="#" id="my-apps-btn" style="color:var(--text-secondary); text-decoration:none;">My Applications</a></li>
+        </ul>
+    </div>
+
+    <!-- Main Section -->
+    <div style="flex:1;">
+        
+        <!-- Explore Jobs Section -->
+        <div id="section-explore">
+            <h2 style="margin-top:0;">Available Positions</h2>
+            <div class="job-grid">
+                {% if not jobs %}
+                    <p>No jobs available right now.</p>
+                {% else %}
+                    {% for job in jobs %}
+                    <div class="glass-panel" style="display:flex; justify-content:space-between; align-items:flex-start;">
+                        <div>
+                            <h3 style="margin-top:0; color:var(--primary);">${{ job.title }}</h3>
+                            <h4 style="margin:5px 0;">{{ job.company }}</h4>
+                            <p style="color: var(--text-secondary); font-size: 0.9rem; margin:5px 0;">📍 {{ job.location }} {% if job.salary %}| 💰 {{ job.salary }}{% endif %}</p>
+                            <p style="font-size: 0.95rem; line-height:1.5;">{{ job.description }}</p>
+                        </div>
+                        <div style="min-width: 120px; text-align:right;">
+                            <button class="btn btn-primary" onclick="openApplyModal('{{ job.id }}', '{{ job.title }}')" style="width:100%;">Quick Apply</button>
+                            <p style="color: var(--text-secondary); font-size: 0.8rem; margin-top:10px;">{{ job.posted_at|date:"M d, Y" }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- My Applications Section -->
+        <div id="section-my-apps" style="display: none;">
+            <h2 style="margin-top:0;">My Applications</h2>
+            <div style="display: flex; flex-direction: column; gap:15px;">
+                {% if not my_applications %}
+                    <p>You haven't applied to any jobs yet.</p>
+                {% else %}
+                    {% for app in my_applications %}
+                    <div class="glass-panel" style="display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <h3 style="margin:0 0 5px 0;">{{ app.job.title }}</h3>
+                            <p style="margin:0; color:var(--text-secondary); font-size:0.9rem;">at {{ app.job.company }} | Applied: {{ app.applied_at|date:"M d, Y" }}</p>
+                        </div>
+                        <div>
+                            <span class="badge badge-{{ app.status|lower }}">{{ app.status }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Modal Overlay for Applying -->
+<div id="apply-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; justify-content:center; align-items:center;">
+    <div class="glass-panel" style="width: 100%; max-width: 500px; position:relative;">
+        <span onclick="closeApplyModal()" style="position:absolute; right:20px; top:20px; cursor:pointer; font-size:1.5rem;">&times;</span>
+        <h2 style="margin-top:0;" id="apply-job-title">Apply</h2>
+        <form method="POST" action="{% url 'api-applications' %}">
+            {% csrf_token %}
+            <input type="hidden" id="apply-job-id" name="job">
+            
+            <label>Cover Letter / Resume Summary</label>
+            <textarea id="apply-summary" name="resume_summary" rows="5" required placeholder="Briefly explain why you are a great fit..."></textarea>
+            
+            <button type="submit" class="btn btn-primary" style="width:100%; margin-top:15px;">Submit Application</button>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Tab switching logic NO API FETCHES!
+    const secExplore = document.getElementById('section-explore');
+    const secMyApps = document.getElementById('section-my-apps');
+    
+    const btnExplore = document.getElementById('explore-jobs-btn');
+    const btnMyApps = document.getElementById('my-apps-btn');
+
+    btnExplore.addEventListener('click', (e) => {
+        e.preventDefault();
+        secExplore.style.display = 'block';
+        secMyApps.style.display = 'none';
+        btnExplore.style.color = 'var(--text-primary)';
+        btnExplore.style.fontWeight = '600';
+        btnMyApps.style.color = 'var(--text-secondary)';
+        btnMyApps.style.fontWeight = 'normal';
+    });
+
+    btnMyApps.addEventListener('click', (e) => {
+        e.preventDefault();
+        secExplore.style.display = 'none';
+        secMyApps.style.display = 'block';
+        btnExplore.style.color = 'var(--text-secondary)';
+        btnExplore.style.fontWeight = 'normal';
+        btnMyApps.style.color = 'var(--text-primary)';
+        btnMyApps.style.fontWeight = '600';
+    });
+
+    // Modal Control
+    function openApplyModal(jobId, jobTitle) {
+        document.getElementById('apply-job-id').value = jobId;
+        document.getElementById('apply-job-title').innerText = 'Apply for ' + jobTitle;
+        document.getElementById('apply-modal').style.display = 'flex';
+    }
+
+    function closeApplyModal() {
+        document.getElementById('apply-modal').style.display = 'none';
+        document.getElementById('apply-job-id').value = '';
+        document.getElementById('apply-summary').value = '';
+    }
+</script>
+{% endblock %}
