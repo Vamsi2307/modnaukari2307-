@@ -16,7 +16,10 @@ def home_view(request):
             return redirect('recruiter_dashboard')
         else:
             return redirect('candidate_dashboard')
-    return render(request, 'home.html')
+            
+    from jobs.models import Job
+    jobs = Job.objects.all().order_by('-posted_at')[:6]
+    return render(request, 'home.html', {'jobs': jobs})
 
 # -------------------- LOGIN / LOGOUT --------------------
 

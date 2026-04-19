@@ -14,34 +14,22 @@
 <div style="margin-top: 60px;">
     <h2 style="text-align: center; margin-bottom: 30px;">Latest Opportunities</h2>
     <div class="job-grid" id="public-jobs-grid">
-        <!-- populated via JS -->
+        {% if not jobs %}
+            <p>No jobs posted yet. Check back later!</p>
+        {% else %}
+            {% for job in jobs %}
+            <div class="glass-panel">
+                <div class="badge" style="display:inline-block; margin-bottom:10px;">New</div>
+                <h3 style="margin-top:0;">{{ job.title }}</h3>
+                <p style="color: var(--text-secondary);">{{ job.company }} &bull; {{ job.location }}</p>
+                <p style="font-size: 0.9rem;">{{ job.description|truncatechars:100 }}</p>
+                <a href="{% url 'login' %}" class="btn btn-primary" style="margin-top:10px;">Login to Apply</a>
+            </div>
+            {% endfor %}
+        {% endif %}
     </div>
 </div>
 {% endblock %}
 
 {% block scripts %}
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        fetch('/api/jobs/')
-            .then(res => res.json())
-            .then(data => {
-                const grid = document.getElementById('public-jobs-grid');
-                if(data.length === 0){
-                    grid.innerHTML = '<p>No jobs posted yet. Check back later!</p>';
-                    return;
-                }
-                data.slice(0, 6).forEach(job => {
-                    grid.innerHTML += `
-                        <div class="glass-panel">
-                            <div class="badge" style="display:inline-block; margin-bottom:10px;">New</div>
-                            <h3 style="margin-top:0;">${job.title}</h3>
-                            <p style="color: var(--text-secondary);">${job.company} &bull; ${job.location}</p>
-                            <p style="font-size: 0.9rem;">${job.description.substring(0, 100)}...</p>
-                            <a href="{% url 'login' %}" class="btn btn-primary" style="margin-top:10px;">Login to Apply</a>
-                        </div>
-                    `;
-                });
-            });
-    });
-</script>
 {% endblock %}
