@@ -24,8 +24,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'z#=9$1+kxg(a^9*4m0+2a1)4u4-0-r#$-23h91_h%@$g6=1v^3&'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
-ALLOWED_HOSTS = ['vamsidunna2001.pythonanywhere.com', 'localhost', '127.0.0.1']
+DEBUG = True
+ALLOWED_HOSTS = ['vamsidunna2001.pythonanywhere.com', 'localhost', '127.0.0.1', '*']
 
 
 # Application definition
@@ -151,9 +151,10 @@ EMAIL_HOST_PASSWORD = 'xnmecetiuscstbgg'
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 # Security settings for production deployment
-SECURE_HSTS_SECONDS = 31536000  # 1 year
-SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-SECURE_HSTS_PRELOAD = True
-SECURE_SSL_REDIRECT = True
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
+if not DEBUG:
+    SECURE_HSTS_SECONDS = 31536000  # 1 year
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
